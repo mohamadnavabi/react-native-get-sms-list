@@ -126,19 +126,23 @@ class GetSmsListModule(private val reactContext: ReactApplicationContext) :
 
   override fun getName(): String = NAME
 
-  override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>?, grantResults: IntArray?): Boolean {
-    Log.d(TAG, "onRequestPermissionsResult, requestCode : $requestCode")
-
-    if (requestCode == REQUEST_READ_SMS) {
-      val status = grantResults?.isNotEmpty() == true && grantResults[0] == PackageManager.PERMISSION_GRANTED
-      sendEvent(EVENT_PERMISSION, Arguments.createMap().apply {
-        putInt("type", REQUEST_READ_SMS)
-        putInt("status", if (status) PERM_ALLOWED else PERM_DENIED)
-      })
-      return status
+override fun onRequestPermissionsResult(
+        requestCode: Int, 
+        permissions: Array<String>, 
+        grantResults: IntArray
+    ): Boolean {
+        return if (requestCode == REQUEST_READ_SMS) {
+            val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+            if (granted) {
+                Log.d(TAG, "SMS permission granted")
+            } else {
+                Log.d(TAG, "SMS permission denied")
+            }
+            true
+        } else {
+            false
+        }
     }
-    return false
-  }
 
   private fun sendEvent(eventName: String, params: WritableMap?) {
     reactContext.getJSModule(RCTDeviceEventEmitter::class.java).emit(eventName, params)

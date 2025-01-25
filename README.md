@@ -1,57 +1,81 @@
 # react-native-get-sms-list
 
-Read android sms list
+A React Native library for reading SMS messages from the device inbox.
+
+## Features
+- Fetch SMS messages from the inbox.
+- Filter messages by date, sender, thread ID, etc.
+- Compatible with both Android and iOS.
 
 ## Installation
 
 ```sh
+npm install react-native-get-sms-list
+# OR
 yarn add react-native-get-sms-list
 ```
 
-```sh
-npm i react-native-get-sms-list
-```
+### Android Setup
 
-## Android Permissions
+Add the following permission to your `AndroidManifest.xml` file:
 
-Add permissions to your android/app/src/main/AndroidManifest.xml file:
-
-```
-  <uses-permission android:name="android.permission.READ_SMS" />
+```xml
+<uses-permission android:name="android.permission.READ_SMS"/>
+<uses-permission android:name="android.permission.RECEIVE_SMS"/>
 ```
 
 ## Usage
 
-**Without any filters:**
+### Import the module
 
-```js
+```typescript
 import { readSMS } from 'react-native-get-sms-list';
-
-// ...
-
-const result = await readSMS();
 ```
 
-**Or with optionals filters:**
+### Read SMS messages
 
-```js
-const filters = {
-  type: 'inbox', // 'inbox' (default) | 'sent' | 'draft' | 'outbox' | 'failed' | 'queued',
-  id: '1', // specefic sms id,
-  address: 'Google', // sms address like a phone number,
-  orderBy: 'date ASC', // 'date asc' | 'date desc' | ...
-  minDate: '1729080977971', // string timestamp
-  maxDate: '1729080977971', // string timestamp
-  limit: 10, // return max 10 rows,
-  thread_id: '1', // return all sms on thread_id 1
+```typescript
+const fetchMessages = async () => {
+  try {
+    const messages = await readSMS({
+      type: 'inbox',
+      limit: 10,
+      orderBy: 'date desc',
+    });
+    console.log(messages);
+  } catch (error) {
+    console.error(error);
+  }
 };
-const result = await readSMS(filters);
+```
+
+### TypeScript Support
+This package includes TypeScript type definitions:
+
+```typescript
+type SMS = {
+  address: string;
+  body: string;
+  date: string;
+  id: string;
+  thread_id: string;
+};
+
+export type FilterSMS = {
+  type?: 'inbox' | 'sent' | 'draft' | 'outbox' | 'failed' | 'queued';
+  id?: string;
+  address?: string;
+  orderBy?: 'date asc' | 'date desc';
+  minDate?: string;
+  maxDate?: string;
+  limit?: number;
+  thread_id?: string;
+};
 ```
 
 ## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+Feel free to open issues or submit pull requests to improve this package.
 
 ## License
-
 MIT
+

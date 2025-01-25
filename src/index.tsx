@@ -1,4 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
+import type { FilterSMS, SMS } from 'react-native-get-sms-list';
 
 const LINKING_ERROR =
   `The package 'react-native-get-sms-list' doesn't seem to be linked. Make sure: \n\n` +
@@ -17,25 +18,6 @@ const GetSmsList = NativeModules.GetSmsList
       }
     );
 
-export type SMSTypes =
-  | 'inbox'
-  | 'sent'
-  | 'draft'
-  | 'outbox'
-  | 'failed'
-  | 'queued';
-
-export interface readSMSArgs {
-  type?: SMSTypes;
-  id?: string;
-  address?: string;
-  orderBy?: string;
-  minDate?: string;
-  maxDate?: string;
-  limit?: number;
-  thread_id?: string;
-}
-
-export function readSMS(args?: readSMSArgs): Promise<string[]> {
+export function readSMS(args?: FilterSMS): Promise<SMS[]> {
   return GetSmsList.readSMS(args ?? {});
 }
