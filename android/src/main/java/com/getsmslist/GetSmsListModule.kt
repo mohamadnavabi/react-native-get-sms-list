@@ -1,39 +1,30 @@
 package com.getsmslist
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
-import android.util.Log
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.*
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
-import com.facebook.react.modules.core.PermissionAwareActivity
-import com.facebook.react.modules.core.PermissionListener
 
-private const val REQUEST_ENABLE_BT = 1
-private const val REQUEST_READ_SMS = 2
-private const val EVENT_PERMISSION = "permission"
-private const val PERM_DENIED = 2
-private const val PERM_ALLOWED = 3
-private const val PERMISSION = Manifest.permission.READ_SMS
+private const val PERMISSION = android.Manifest.permission.READ_SMS
 private val TAG = GetSmsListModule::class.java.simpleName
 
 class GetSmsListModule(private val reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext), PermissionListener, ActivityEventListener {
+  ReactContextBaseJavaModule(reactContext) {
 
-  init {
-    reactContext.addActivityEventListener(this)
-  }
+  override fun getName(): String = NAME
 
   @SuppressLint("Recycle")
   @ReactMethod
   fun readSMS(options: ReadableMap, promise: Promise) {
     if (!hasReadSMSPermissions()) {
-      requestReadSMSPermission()
+      // فقط reject کن، permission رو JS بگیره
+      promise.reject(
+        "NO_PERMISSION",
+        "READ_SMS permission is not granted. Request it from JS before calling readSMS."
+      )
       return
     }
 
@@ -48,12 +39,21 @@ class GetSmsListModule(private val reactContext: ReactApplicationContext) :
         arrayOf("_id", "address", "date", "body", "thread_id"),
         selection,
         selectionArgs,
-        (options.getString("orderBy") ?: "date")  + limit
+        (options.getString("orderBy") ?: "date") + limit
       )
 
       promise.resolve(cursorToWritableArray(cursor))
     } catch (e: Exception) {
-      promise.reject(e)
+      promise.reject("READ_SMS_ERROR", e)
+    }
+  }
+
+  private fun hasReadSMSPermissions(): Boolean {
+    // برای M به بعد چک runtime permission؛ قبلش همیشه مجازه
+    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+      true
+    } else {
+      ContextCompat.checkSelfPermission(reactContext, PERMISSION) == PackageManager.PERMISSION_GRANTED
     }
   }
 
@@ -76,9 +76,9 @@ class GetSmsListModule(private val reactContext: ReactApplicationContext) :
       selectionArgs.add(id)
     }
 
-    options.getString("thread_id")?.let { thread_id ->
+    options.getString("thread_id")?.let { threadId ->
       selectionParts.add("thread_id = ?")
-      selectionArgs.add(thread_id)
+      selectionArgs.add(threadId)
     }
 
     options.getString("address")?.let { address ->
@@ -109,58 +109,6 @@ class GetSmsListModule(private val reactContext: ReactApplicationContext) :
     }
     return array
   }
-
-  private fun hasReadSMSPermissions(): Boolean =
-    Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
-      reactContext.checkSelfPermission(PERMISSION) == PackageManager.PERMISSION_GRANTED
-
-  private fun requestReadSMSPermission() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      (currentActivity as? PermissionAwareActivity)?.requestPermissions(
-        arrayOf(PERMISSION),
-        REQUEST_READ_SMS,
-        this
-      ) ?: Log.e(TAG, "requestReadSMSPermission: Activity is null or doesn't implement PermissionAwareActivity")
-    }
-  }
-
-  override fun getName(): String = NAME
-
-override fun onRequestPermissionsResult(
-        requestCode: Int, 
-        permissions: Array<String>, 
-        grantResults: IntArray
-    ): Boolean {
-        return if (requestCode == REQUEST_READ_SMS) {
-            val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
-            if (granted) {
-                Log.d(TAG, "SMS permission granted")
-            } else {
-                Log.d(TAG, "SMS permission denied")
-            }
-            true
-        } else {
-            false
-        }
-    }
-
-  private fun sendEvent(eventName: String, params: WritableMap?) {
-    reactContext.getJSModule(RCTDeviceEventEmitter::class.java).emit(eventName, params)
-  }
-
-  override fun onActivityResult(activity: Activity?, requestCode: Int, resultCode: Int, data: Intent?) {
-    activity?.let {
-      Log.d(TAG, "onActivityResult, requestCode : $requestCode, resultCode : $resultCode")
-      if (requestCode == REQUEST_ENABLE_BT) {
-        sendEvent(EVENT_PERMISSION, Arguments.createMap().apply {
-          putInt("type", REQUEST_ENABLE_BT)
-          putInt("status", if (resultCode == Activity.RESULT_OK) PERM_ALLOWED else PERM_DENIED)
-        })
-      }
-    }
-  }
-
-  override fun onNewIntent(intent: Intent?) {}
 
   companion object {
     const val NAME = "GetSmsList"

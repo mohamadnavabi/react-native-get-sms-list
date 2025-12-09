@@ -1,6 +1,6 @@
 {
   "name": "react-native-get-sms-list",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Receive android sms list",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
