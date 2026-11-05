@@ -75,7 +75,6 @@ android/keystores/debug.keystore
 .turbo/
 
 # React Native Codegen
-ios/generated
 android/generated
 
 .github/*

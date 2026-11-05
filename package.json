@@ -1,7 +1,7 @@
 {
   "name": "react-native-get-sms-list",
-  "version": "1.0.7",
-  "description": "Receive android sms list",
+  "version": "1.1.0",
+  "description": "Read the SMS inbox on Android from React Native",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
@@ -21,10 +21,6 @@
     "src",
     "lib",
     "android",
-    "ios",
-    "cpp",
-    "*.podspec",
-    "!ios/build",
     "!android/build",
     "!android/gradle",
     "!android/gradlew",
@@ -40,14 +36,15 @@
     "test": "jest",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
-    "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
+    "clean": "del-cli android/build example/android/build example/android/app/build lib",
     "prepare": "bob build",
     "release": "release-it"
   },
   "keywords": [
     "react-native",
-    "ios",
-    "android"
+    "android",
+    "sms",
+    "read-sms"
   ],
   "repository": {
     "type": "git",
