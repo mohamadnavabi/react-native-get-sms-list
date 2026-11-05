@@ -78,12 +78,4 @@ android/keystores/debug.keystore
 ios/generated
 android/generated
 
-.yarn/*
-!.yarn/cache
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-
 .github/*
